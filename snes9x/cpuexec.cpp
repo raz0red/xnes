@@ -321,7 +321,7 @@ void S9xMainLoop (void)
 	#ifdef DEBUGGER
 		if (!(CPU.Flags & FRAME_ADVANCE_FLAG))
 	#endif
-		S9xSyncSpeed();
+		//S9xSyncSpeed();
 		CPU.Flags &= ~SCAN_KEYS_FLAG;
 	}
     //printf("Exit S9xMainLoop %d loops2=%d\n", loop_times++, loops2);

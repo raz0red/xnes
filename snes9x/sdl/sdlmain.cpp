@@ -567,6 +567,7 @@ void S9xParseArg (char **argv, int &i, int argc){
 extern "C" void toggle_display_framerate() __attribute__((used));
 extern "C" void run(char*) __attribute__((used));
 extern "C" int set_frameskip(int) __attribute__((used));
+extern "C" void mainloop() __attribute__((used));
 int set_frameskip(int n){
 Settings.SkipFrames = n;
 return n;
@@ -579,6 +580,7 @@ void mainloop(){
     S9xProcessEvents(FALSE);
     S9xMainLoop();
 }
+
 void reboot_emulator(char *filename){
   uint32 saved_flags = CPU.Flags;
 	bool8	loaded = FALSE;
@@ -632,7 +634,7 @@ void run(char *filename){
     S9xSetSoundMute(TRUE);
     #endif
     printf("start main loop\n");
-    emscripten_set_main_loop(mainloop, 0, 0);
+    //emscripten_set_main_loop(mainloop, 0, 0);
 }
 
 
@@ -650,7 +652,7 @@ int main (int argc, char **argv)
 		console.log('Syncing file system...');
 		FS.mkdir('/home/web_user/.snes9x');
 		FS.mkdir('/home/web_user/.snes9x/sram');
-		FS.mount(IDBFS, {}, '/home/web_user/.snes9x/sram');
+		//FS.mount(IDBFS, {}, '/home/web_user/.snes9x/sram');
 		FS.syncfs(true, function(err) {
 			if (err) {
 				console.log(err);
@@ -673,30 +675,33 @@ int main (int argc, char **argv)
 	Settings.SupportHiRes = TRUE;
 	Settings.Transparency = TRUE;
 	Settings.AutoDisplayMessages = FALSE;
-	Settings.InitialInfoStringTimeout = 120;
+	Settings.InitialInfoStringTimeout = 0;
 	Settings.HDMATimingHack = 100;
 	Settings.BlockInvalidVRAMAccessMaster = TRUE;
 	Settings.StopEmulation = TRUE;
 	Settings.WrongMovieStateProtection = TRUE;
 	Settings.DumpStreamsMaxFrames = -1;
-  Settings.DisplayFrameRate = FALSE;
-  Settings.AutoDisplayMessages = TRUE;
+	Settings.DisplayFrameRate = TRUE;
+	Settings.AutoDisplayMessages = TRUE;
 	Settings.StretchScreenshots = 1;
 	Settings.SnapshotScreenshots = TRUE;
 	Settings.SkipFrames = 0;
 	Settings.TurboSkipFrames = 15;
 	Settings.CartAName[0] = 0;
 	Settings.CartBName[0] = 0;
-  Settings.NoPatch= TRUE;
-  Settings.SoundSync =  FALSE;
+	Settings.NoPatch = TRUE;
+	Settings.SoundSync = FALSE;
 #ifdef SOUND
 	Settings.Mute = FALSE;
-  Settings.SoundPlaybackRate = 22100;
-	Settings.SoundInputRate = 22100;
+    // Settings.SoundPlaybackRate = 22100;
+	// Settings.SoundInputRate = 22100;
+    Settings.SoundPlaybackRate = 48000;
+	Settings.SoundInputRate = 32000;
+	printf("Sound input rate:%d\n", Settings.SoundInputRate);
 #else
   Settings.Mute = TRUE;
   Settings.SoundPlaybackRate = 16000;
-	Settings.SoundInputRate = 16000;
+  Settings.SoundInputRate = 16000;
 #endif
 	CPU.Flags = 0;    ;
 	if (!Memory.Init() || !S9xInitAPU())
@@ -706,7 +711,8 @@ int main (int argc, char **argv)
 		S9xDeinitAPU();
 		exit(1);
 	}
-    sound_buffer_size= 100;
+    //sound_buffer_size= 100;
+	sound_buffer_size = 100;
 	S9xInitSound(sound_buffer_size, 0);
 	S9xSetSoundMute(TRUE);
 

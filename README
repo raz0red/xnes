@@ -3,9 +3,6 @@ Install emscripten and make sure emcc is in your $PATH.
 ./buildall
 see output for compiled results.
 
-snem port is outdated, can only be compiled by a very old version of emscripten.
-I might update it in future but snes9x seems to be fast enough for modern devices.
-
 snes9x port requires emscripten 1.36+
 
 snes9x is build with sound by default. comment out -Dsound in snes9x/sdl/buildhtml to disable sound.

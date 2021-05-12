@@ -63,6 +63,10 @@
 #include "../../ansi/drawansi.h"
 #endif
 
+#ifdef HTML
+#include <emscripten.h>
+#endif
+
 struct GUIData
 {
     #ifdef USE_SDL
@@ -178,7 +182,8 @@ void S9xInitDisplay (int argc, char **argv)
 	 * we just go along with RGB565 for now, nothing else..
 	 */
 
-    GUI.sdl_screen = SDL_SetVideoMode(SNES_WIDTH * GFX_SCALE, SNES_HEIGHT_EXTENDED * GFX_SCALE, BPP, 0);
+    //GUI.sdl_screen = SDL_SetVideoMode(SNES_WIDTH * GFX_SCALE, SNES_HEIGHT_EXTENDED * GFX_SCALE, BPP, SDL_RESIZABLE);
+	GUI.sdl_screen = SDL_SetVideoMode(IMAGE_WIDTH, IMAGE_HEIGHT, BPP, SDL_RESIZABLE);
 
     if (GUI.sdl_screen == NULL)
 	{
@@ -223,29 +228,47 @@ static void SetupImage (void)
 	// domaemon: The whole unix code basically assumes output=(original * 2);
 	// This way the code can handle the SNES filters, which does the 2X.
 
-	GFX.Pitch = SNES_WIDTH * 2 * GFX_SCALE;
-
-	GUI.snes_buffer = (uint8 *) calloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * GFX_SCALE), 1);
+	//GFX.Pitch = SNES_WIDTH * 2 * GFX_SCALE;
+	GFX.Pitch = IMAGE_WIDTH * 2;
+	
+	//GUI.snes_buffer = (uint8 *) calloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * GFX_SCALE), 1);
+	GUI.snes_buffer = (uint8 *) calloc(GFX.Pitch * ((IMAGE_HEIGHT + 4)), 1);
 
 	if (!GUI.snes_buffer)
 		FatalError("Failed to allocate GUI.snes_buffer.");
 
 	// domaemon: Add 2 lines before drawing.
-	GFX.Screen = (uint16 *) (GUI.snes_buffer + (GFX.Pitch * 2 * GFX_SCALE));
+	GFX.Screen = (uint16 *) (GUI.snes_buffer + (GFX.Pitch * 2));
 #ifdef USE_SDL
     GUI.blit_screen       = (uint8 *) GUI.sdl_screen->pixels;
     GUI.blit_screen_pitch = SNES_WIDTH  * GFX_SCALE * (BPP/8);
 #endif
 	S9xGraphicsInit();
 }
+
+static int lastWidth = 0;
+static int lastHeight = 0;
+
 void BlitRGB565toRGB32(uint16 *srcPtr, int srcRowBytes, uint32 *dstPtr, int dstRowBytes, int width, int height)
 {
     int x;
     unsigned int r,g,b;
 
+	if (width != lastWidth || height != lastHeight) {
+		lastHeight = height;
+		lastWidth = width;
+		printf("%dx%d\n", width, height);
+
+		EM_ASM({
+			const canvas = document.getElementById('screen');
+			canvas.width = $0;
+			canvas.height = $1;
+		}, width, height);
+	}
+
 	for (; height; height--)
 	{
-        for(x=0;x<width;x++)
+        for(x=0;x<width*2;x++)
         {
             r=((srcPtr[x]>>11)&0x1f)<<3;
             g=((srcPtr[x]>>5)&0x3f)<<2;
@@ -258,7 +281,7 @@ void BlitRGB565toRGB32(uint16 *srcPtr, int srcRowBytes, uint32 *dstPtr, int dstR
         }
 
 		srcPtr += (srcRowBytes/2);
-		dstPtr += (dstRowBytes/4);
+		dstPtr += ((dstRowBytes/4)*2);
 	}
 }
 

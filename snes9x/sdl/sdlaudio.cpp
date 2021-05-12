@@ -117,7 +117,7 @@ bool8 S9xOpenSoundDevice (void)
 	audiospec->channels = Settings.Stereo ? 2 : 1;
 	audiospec->format = Settings.SixteenBitSound ? AUDIO_S16SYS : AUDIO_U8;
 #ifdef HTML
-        audiospec->samples = 1024; // needs to be power-of-two
+        audiospec->samples = 512; // needs to be power-of-two
 #else
 	audiospec->samples = (sound_buffer_size * audiospec->freq / 1000) >> 1;
 #endif
