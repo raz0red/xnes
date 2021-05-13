@@ -63,89 +63,24 @@
 #include "debug.h"
 #endif
 
-#include <SDL/SDL.h>
-//#include "sdl_snes9x.h"
-uint32        sound_buffer_size;
-#ifdef SOUND
-SDL_AudioSpec *audiospec;
-#endif
+static void samples_available (void *data)
+{   
+    S9xFinalizeSamples();
+    return;
+}
 
 void S9xToggleSoundChannel (int c)
 {
-#ifdef SOUND
 	static uint8	sound_switch = 255;
-
 	if (c == 8)
 		sound_switch = 255;
 	else
 		sound_switch ^= 1 << c;
-
 	S9xSetSoundControl(sound_switch);
-#endif
 }
 
-#ifdef SOUND
-static void
-sdl_audio_callback (void *userdata, Uint8 *stream, int len)
-{   
-    SDL_LockAudio ();
-    S9xMixSamples (stream, len >> (Settings.SixteenBitSound ? 1 : 0));
-    SDL_UnlockAudio ();
-
-    return;
-}
-
-static void
-samples_available (void *data)
-{   
-    SDL_LockAudio ();
-    S9xFinalizeSamples ();
-    SDL_UnlockAudio ();
-
-    return;
-}
-#endif
 bool8 S9xOpenSoundDevice (void)
 {
-
-#ifdef SOUND        
-	SDL_InitSubSystem (SDL_INIT_AUDIO);
-
-	audiospec = (SDL_AudioSpec *) malloc (sizeof (SDL_AudioSpec));
-	
-	audiospec->freq = Settings.SoundPlaybackRate;
-	audiospec->channels = Settings.Stereo ? 2 : 1;
-	audiospec->format = Settings.SixteenBitSound ? AUDIO_S16SYS : AUDIO_U8;
-#ifdef HTML
-        audiospec->samples = 512; // needs to be power-of-two
-#else
-	audiospec->samples = (sound_buffer_size * audiospec->freq / 1000) >> 1;
-#endif
-	audiospec->callback = sdl_audio_callback;
-	
-	printf ("SDL sound driver initializing...\n");
-	printf ("    --> (Frequency: %dhz, Latency: %dms)...",
-		audiospec->freq,
-		(audiospec->samples * 1000 / audiospec->freq) << 1);
-	
-	if (SDL_OpenAudio (audiospec, NULL) < 0)
-	  {
-	    printf ("Failed\n");
-	    
-	    free (audiospec);
-	    audiospec = NULL;
-	    
-	    return FALSE;
-	  }
-	
-	printf ("OK\n");
-	
-	SDL_PauseAudio (0);
-	
-	S9xSetSamplesAvailableCallback (samples_available, NULL);
-    return TRUE;
-#else
-    return FALSE;
-#endif
-
+  S9xSetSamplesAvailableCallback (samples_available, NULL);
+  return TRUE;
 }

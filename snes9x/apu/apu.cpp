@@ -666,3 +666,4 @@ void S9xAPULoadState (uint8 *block)
 	ptr += sizeof(int32);
 	spc::remainder = GET_LE32(ptr);
 }
+

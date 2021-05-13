@@ -453,10 +453,13 @@ bool8 S9xContinueUpdate (int width, int height)
 	return (TRUE);
 }
 
+#define WRC_SRAM_FILE "/rom.srm"
+
 void S9xAutoSaveSRAM (void)
 {
-		Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
-    printf("auto save sram\n");
+	//Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
+	Memory.SaveSRAM(WRC_SRAM_FILE);
+    printf("Save SRAM.\n");
 }
 void S9xSyncSpeed (void)
 {
@@ -537,7 +540,7 @@ void S9xExit (void)
 		S9xNPDisconnect();
 #endif
 
-  Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
+  //Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
 
 #ifdef FANCY
 	S9xSaveCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
@@ -562,29 +565,89 @@ void S9xParseArg (char **argv, int &i, int argc){
     printf("parse arg\n");
 }
 
-
 #ifdef HTML
 extern "C" void toggle_display_framerate() __attribute__((used));
 extern "C" void run(char*) __attribute__((used));
 extern "C" int set_frameskip(int) __attribute__((used));
 extern "C" void mainloop() __attribute__((used));
-int set_frameskip(int n){
-Settings.SkipFrames = n;
-return n;
-}
-void toggle_display_framerate(){
+extern "C" float* get_left_audio_buffer() __attribute__((used));
+extern "C" float* get_right_audio_buffer() __attribute__((used));
+extern "C" void collect_audio(int) __attribute__((used));
+extern "C" int is_pal() __attribute__((used));
+extern "C" void force_pal(int) __attribute__((used));
+extern "C" void show_fps(int)  __attribute__((used));
+extern "C" void report_button(int, int)  __attribute__((used));
 
+static float* left_audio_buffer = NULL;
+static float* right_audio_buffer = NULL;
+static Uint8* audio_buffer = NULL;
+
+void report_button(int id, int down) {
+	S9xReportButton(id, (down == 1));
+}
+
+void show_fps(int e) {
+	Settings.DisplayFrameRate = (e != 0);
+}
+
+int set_frameskip(int n){
+	Settings.SkipFrames = n;
+	return n;
+}
+
+void force_pal(int f){
+	Settings.ForcePAL = (f != 0);
+}
+
+int is_pal() {
+	return Settings.PAL;
+}
+
+void toggle_display_framerate(){
     Settings.DisplayFrameRate = !Settings.DisplayFrameRate;
 }
 void mainloop(){
-    S9xProcessEvents(FALSE);
+    //S9xProcessEvents(FALSE);
     S9xMainLoop();
 }
 
+float convert_sample_i2f(int16 i) {
+    float f;
+    if(i < 0) {
+        f = ((float) i) / (float) 32768;
+    } else {
+        f = ((float) i) / (float) 32767;
+    }
+    if( f > 1 ) f = 1;
+    if( f < -1 ) f = -1;
+    return f;
+}
+
+void collect_audio(int length)
+{   
+	S9xFinalizeSamples();
+    S9xMixSamples(audio_buffer, length << 1);
+	int16* source = (int16*)audio_buffer;
+    int p = 0;
+    for(int i = 0; i < length * 2; i += 2) {
+        left_audio_buffer[p] = convert_sample_i2f(source[i]);
+        right_audio_buffer[p] = convert_sample_i2f(source[i + 1]);
+        p++;
+    }
+}
+
+float* get_left_audio_buffer() {
+	return left_audio_buffer;
+}
+
+float* get_right_audio_buffer() {
+	return right_audio_buffer;	
+}
+
 void reboot_emulator(char *filename){
-  uint32 saved_flags = CPU.Flags;
+  	uint32 saved_flags = CPU.Flags;
 	bool8	loaded = FALSE;
-  loaded = Memory.LoadROM(filename);
+  	loaded = Memory.LoadROM(filename);
 
 	if (!loaded)
 	{
@@ -592,10 +655,40 @@ void reboot_emulator(char *filename){
 		exit(1);
 	}
 
-	NSRTControllerSetup();
+	//NSRTControllerSetup();
 
-	printf("Attempting to load SRAM %s.\n", S9xGetFilename(".srm", SRAM_DIR));
-	bool8 sramloaded = Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
+	S9xUnmapAllControls();
+	S9xSetController(0, CTL_JOYPAD, 0, 0, 0, 0);
+	S9xSetController(1, CTL_JOYPAD, 1, 0, 0, 0);
+    S9xMapButton(0, S9xGetCommandT("Joypad1 Right"), false);
+    S9xMapButton(1, S9xGetCommandT("Joypad1 Left"), false);
+    S9xMapButton(2, S9xGetCommandT("Joypad1 Down"), false);
+    S9xMapButton(3, S9xGetCommandT("Joypad1 Up"), false);
+    S9xMapButton(4, S9xGetCommandT("Joypad1 Start"), false);
+    S9xMapButton(5, S9xGetCommandT("Joypad1 Select"), false);
+    S9xMapButton(6, S9xGetCommandT("Joypad1 A"), false);
+    S9xMapButton(7, S9xGetCommandT("Joypad1 B"), false);
+    S9xMapButton(8, S9xGetCommandT("Joypad1 X"), false);
+    S9xMapButton(9, S9xGetCommandT("Joypad1 Y"), false);
+    S9xMapButton(10, S9xGetCommandT("Joypad1 L"), false);
+    S9xMapButton(11, S9xGetCommandT("Joypad1 R"), false);
+    S9xMapButton(12, S9xGetCommandT("Joypad2 Right"), false);
+    S9xMapButton(13, S9xGetCommandT("Joypad2 Left"), false);
+    S9xMapButton(14, S9xGetCommandT("Joypad2 Down"), false);
+    S9xMapButton(15, S9xGetCommandT("Joypad2 Up"), false);
+    S9xMapButton(16, S9xGetCommandT("Joypad2 Start"), false);
+    S9xMapButton(17, S9xGetCommandT("Joypad2 Select"), false);
+    S9xMapButton(18, S9xGetCommandT("Joypad2 A"), false);
+    S9xMapButton(19, S9xGetCommandT("Joypad2 B"), false);
+    S9xMapButton(20, S9xGetCommandT("Joypad2 X"), false);
+    S9xMapButton(21, S9xGetCommandT("Joypad2 Y"), false);
+    S9xMapButton(22, S9xGetCommandT("Joypad2 L"), false);
+    S9xMapButton(23, S9xGetCommandT("Joypad2 R"), false);
+
+	// printf("Attempting to load SRAM %s.\n", S9xGetFilename(".srm", SRAM_DIR));
+	// bool8 sramloaded = Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
+	printf("Attempting to load SRAM %s.\n", WRC_SRAM_FILE);
+	bool8 sramloaded = Memory.LoadSRAM(WRC_SRAM_FILE);	
 	if (sramloaded)
 	{
 		printf("Load successful.\n");
@@ -608,11 +701,8 @@ void reboot_emulator(char *filename){
 	CPU.Flags = saved_flags;
 	Settings.StopEmulation = FALSE;
 
-	S9xInitInputDevices(1103, 1104, 1105, 1106, 13, 32, 120, 122, 114, 97, 113, 119);
+	//S9xInitInputDevices(1103, 1104, 1105, 1106, 13, 32, 120, 122, 114, 97, 113, 119);
 	S9xInitDisplay(NULL, NULL);
-	sprintf(String, "\"%s\" %s: %s", Memory.ROMName, TITLE, VERSION);
-
-    S9xSetTitle(String);
 #ifdef SOUND
 	S9xSetSoundMute(FALSE);
 #else
@@ -633,17 +723,20 @@ void run(char *filename){
     printf("S9xSetSoundMute(TRUE)\n");
     S9xSetSoundMute(TRUE);
     #endif
-    printf("start main loop\n");
-    //emscripten_set_main_loop(mainloop, 0, 0);
 }
-
 
 #endif
 
+#define AUDIO_BUFFER_LEN 1024
 
 int main (int argc, char **argv)
 {
 	printf("\n\nSnes9x " VERSION " for unix/SDL\n");
+
+	// Allocate audio buffers
+	left_audio_buffer = (float*)malloc((AUDIO_BUFFER_LEN * sizeof(float)));
+	right_audio_buffer = (float*)malloc((AUDIO_BUFFER_LEN * sizeof(float)));
+	audio_buffer = (Uint8*)malloc(AUDIO_BUFFER_LEN * 4); // 16bit stereo
 
 	snprintf(default_dir, PATH_MAX + 1, "%s%s%s", getenv("HOME"), SLASH_STR, ".snes9x");
 	s9x_base_dir = default_dir;
@@ -681,7 +774,7 @@ int main (int argc, char **argv)
 	Settings.StopEmulation = TRUE;
 	Settings.WrongMovieStateProtection = TRUE;
 	Settings.DumpStreamsMaxFrames = -1;
-	Settings.DisplayFrameRate = TRUE;
+	Settings.DisplayFrameRate = FALSE;
 	Settings.AutoDisplayMessages = TRUE;
 	Settings.StretchScreenshots = 1;
 	Settings.SnapshotScreenshots = TRUE;
@@ -696,14 +789,14 @@ int main (int argc, char **argv)
     // Settings.SoundPlaybackRate = 22100;
 	// Settings.SoundInputRate = 22100;
     Settings.SoundPlaybackRate = 48000;
-	Settings.SoundInputRate = 32000;
+	//Settings.SoundInputRate = 32000;
 	printf("Sound input rate:%d\n", Settings.SoundInputRate);
 #else
   Settings.Mute = TRUE;
   Settings.SoundPlaybackRate = 16000;
   Settings.SoundInputRate = 16000;
 #endif
-	CPU.Flags = 0;    ;
+	CPU.Flags = 0;
 	if (!Memory.Init() || !S9xInitAPU())
 	{
 		fprintf(stderr, "Snes9x: Memory allocation failure - not enough RAM/virtual memory available.\nExiting...\n");
@@ -711,7 +804,6 @@ int main (int argc, char **argv)
 		S9xDeinitAPU();
 		exit(1);
 	}
-    //sound_buffer_size= 100;
 	sound_buffer_size = 100;
 	S9xInitSound(sound_buffer_size, 0);
 	S9xSetSoundMute(TRUE);
@@ -721,9 +813,6 @@ int main (int argc, char **argv)
 #ifdef GFX_MULTI_FORMAT
 	S9xSetRenderPixelFormat(RGB565);
 #endif
-
-
-	// domaemon: setting the title on the window bar
 
 #ifdef HTML
        emscripten_exit_with_live_runtime();

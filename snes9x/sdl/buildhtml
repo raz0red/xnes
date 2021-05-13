@@ -12,10 +12,9 @@ emcc \
  -DHTML $INCLUDES $CCFLAGS $OBJECTS \
  -lm \
  -lSDL \
- -s EXPORTED_FUNCTIONS="['_main', '_set_frameskip', '_set_transparency',  '_run', '_mainloop', '_toggle_display_framerate', '_S9xAutoSaveSRAM' ]" \
+ -s EXPORTED_FUNCTIONS="['_main', '_set_frameskip', '_set_transparency',  '_run', '_mainloop', '_toggle_display_framerate', '_S9xAutoSaveSRAM', '_get_left_audio_buffer', '_get_right_audio_buffer', '_collect_audio' ]" \
  -s EXTRA_EXPORTED_RUNTIME_METHODS=["cwrap"] \
  -s FORCE_FILESYSTEM=1 \
  -s INITIAL_MEMORY=67108864 \
- --shell-file xnes9x_shell.html \
  -o $OUT/snes9x.html
  
