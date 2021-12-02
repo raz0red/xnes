@@ -804,8 +804,8 @@ int main (int argc, char **argv)
 		S9xDeinitAPU();
 		exit(1);
 	}
-	sound_buffer_size = 100;
-	S9xInitSound(sound_buffer_size, 0);
+	//sound_buffer_size = 100;
+	S9xInitSound(100, 0);
 	S9xSetSoundMute(TRUE);
 
 	S9xReportControllers();
