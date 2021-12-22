@@ -3,6 +3,7 @@ set -o verbose
 OUT=../../output
 INCLUDES="-I. -I.. -I../apu/"
 CCFLAGS="-U__linux -DLSB_FIRST -DHTML -DUSE_SDL -DSOUND -fomit-frame-pointer -fno-exceptions -fno-rtti -pedantic -Wall -W -Wno-unused-parameter -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DHAVE_MKSTEMP -DHAVE_STRINGS_H -DHAVE_SYS_IOCTL_H -DHAVE_STDINT_H -DRIGHTSHIFT_IS_SAR -Wno-c++11-extensions"
+PPU_OPT=""
 
 cleanOutput() {
   rm -f $OUT/*
@@ -15,50 +16,51 @@ clean() {
 
 compile() {
     echo $CCFLAGS
-    emcc $INCLUDES $CCFLAGS ../apu/apu.cpp -c -o ../apu/apu.o
-    emcc $INCLUDES $CCFLAGS ../apu/SNES_SPC.cpp -c -o ../apu/SNES_SPC.o
-    emcc $INCLUDES $CCFLAGS ../apu/SNES_SPC_misc.cpp -c -o ../apu/SNES_SPC_misc.o
-    emcc $INCLUDES $CCFLAGS ../apu/SNES_SPC_state.cpp -c -o ../apu/SNES_SPC_state.o
-    emcc $INCLUDES $CCFLAGS ../apu/SPC_DSP.cpp -c -o ../apu/SPC_DSP.o
-    emcc $INCLUDES $CCFLAGS ../apu/SPC_Filter.cpp -c -o ../apu/SPC_Filter.o
-    emcc $INCLUDES $CCFLAGS ../bsx.cpp -c -o ../bsx.o
-    emcc $INCLUDES $CCFLAGS ../c4.cpp -c -o ../c4.o
-    emcc $INCLUDES $CCFLAGS ../c4emu.cpp -c -o ../c4emu.o
-    emcc $INCLUDES $CCFLAGS ../clip.cpp -c -o ../clip.o
-    emcc $INCLUDES $CCFLAGS ../controls.cpp -c  -o ../controls.o
-    emcc $INCLUDES $CCFLAGS ../cpu.cpp -c  -o ../cpu.o
-    emcc $INCLUDES $CCFLAGS ../cpuexec.cpp -c  -o  ../cpuexec.o
-    emcc $INCLUDES $CCFLAGS ../cpuops.cpp -c  -o ../cpuops.o
-    emcc $INCLUDES $CCFLAGS ../dma.cpp -c  -o ../dma.o
-    emcc $INCLUDES $CCFLAGS ../dsp.cpp -c  -o ../dsp.o
-    emcc $INCLUDES $CCFLAGS ../dsp1.cpp -c  -o ../dsp1.o
-    emcc $INCLUDES $CCFLAGS ../dsp2.cpp -c  -o ../dsp2.o
-    emcc $INCLUDES $CCFLAGS ../dsp3.cpp -c  -o ../dsp3.o
-    emcc $INCLUDES $CCFLAGS ../dsp4.cpp -c  -o ../dsp4.o
-    emcc $INCLUDES $CCFLAGS ../fxinst.cpp -c  -o ../fxinst.o
-    emcc $INCLUDES $CCFLAGS ../fxemu.cpp -c  -o ../fxemu.o
-    emcc $INCLUDES $CCFLAGS ../gfx.cpp -c  -o ../gfx.o
-    emcc $INCLUDES $CCFLAGS ../globals.cpp -c   -o ../globals.o
-    emcc $INCLUDES $CCFLAGS ../memmap.cpp -c   -o ../memmap.o
-    emcc $INCLUDES $CCFLAGS ../obc1.cpp -c  -o ../obc1.o
-    emcc $INCLUDES $CCFLAGS ../ppu.cpp -c  -o ../ppu.o
-    emcc $INCLUDES $CCFLAGS ../reader.cpp -c  -o ../reader.o
-    emcc $INCLUDES $CCFLAGS ../sa1.cpp -c  -o ../sa1.o
-    emcc $INCLUDES $CCFLAGS ../sa1cpu.cpp -c   -o ../sa1cpu.o
-    emcc $INCLUDES $CCFLAGS ../sdd1.cpp -c  -o ../sdd1.o
-    emcc $INCLUDES $CCFLAGS ../sdd1emu.cpp -c  -o ../sdd1emu.o
-    emcc $INCLUDES $CCFLAGS ../seta.cpp -c  -o ../seta.o
-    emcc $INCLUDES $CCFLAGS ../seta010.cpp -c  -o ../seta010.o
-    emcc $INCLUDES $CCFLAGS ../seta011.cpp -c  -o ../seta011.o
-    emcc $INCLUDES $CCFLAGS ../seta018.cpp -c   -o ../seta018.o
-    emcc $INCLUDES $CCFLAGS ../snes9x.cpp -c  -o ../snes9x.o
-    emcc $INCLUDES $CCFLAGS ../spc7110.cpp -c  -o ../spc7110.o
-    emcc $INCLUDES $CCFLAGS ../srtc.cpp -c  -o ../srtc.o
-    emcc $INCLUDES $CCFLAGS ../tile.cpp -c  -o ../tile.o
-    emcc $INCLUDES $CCFLAGS sdlmain.cpp -c  -o sdlmain.o
-    emcc $INCLUDES $CCFLAGS sdlinput.cpp -c  -o sdlinput.o
-    emcc $INCLUDES $CCFLAGS sdlvideo.cpp -c  -o sdlvideo.o
-    emcc $INCLUDES $CCFLAGS sdlaudio.cpp -c  -o sdlaudio.o
+    echo $PPU_OPT
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/apu.cpp -c -o ../apu/apu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/SNES_SPC.cpp -c -o ../apu/SNES_SPC.o
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/SNES_SPC_misc.cpp -c -o ../apu/SNES_SPC_misc.o
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/SNES_SPC_state.cpp -c -o ../apu/SNES_SPC_state.o
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/SPC_DSP.cpp -c -o ../apu/SPC_DSP.o
+    emcc $INCLUDES $CCFLAGS -O3 ../apu/SPC_Filter.cpp -c -o ../apu/SPC_Filter.o
+    emcc $INCLUDES $CCFLAGS -O3 ../bsx.cpp -c -o ../bsx.o
+    emcc $INCLUDES $CCFLAGS -O3 ../c4.cpp -c -o ../c4.o
+    emcc $INCLUDES $CCFLAGS -O3 ../c4emu.cpp -c -o ../c4emu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../clip.cpp -c -o ../clip.o
+    emcc $INCLUDES $CCFLAGS -O3 ../controls.cpp -c  -o ../controls.o
+    emcc $INCLUDES $CCFLAGS -O3 ../cpu.cpp -c  -o ../cpu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../cpuexec.cpp -c  -o  ../cpuexec.o
+    emcc $INCLUDES $CCFLAGS -O3 ../cpuops.cpp -c  -o ../cpuops.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dma.cpp -c  -o ../dma.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dsp.cpp -c  -o ../dsp.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dsp1.cpp -c  -o ../dsp1.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dsp2.cpp -c  -o ../dsp2.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dsp3.cpp -c  -o ../dsp3.o
+    emcc $INCLUDES $CCFLAGS -O3 ../dsp4.cpp -c  -o ../dsp4.o
+    emcc $INCLUDES $CCFLAGS -O3 ../fxinst.cpp -c  -o ../fxinst.o
+    emcc $INCLUDES $CCFLAGS -O3 ../fxemu.cpp -c  -o ../fxemu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../gfx.cpp -c  -o ../gfx.o
+    emcc $INCLUDES $CCFLAGS -O3 ../globals.cpp -c   -o ../globals.o
+    emcc $INCLUDES $CCFLAGS -O3 ../memmap.cpp -c   -o ../memmap.o
+    emcc $INCLUDES $CCFLAGS -O3 ../obc1.cpp -c  -o ../obc1.o
+    emcc $INCLUDES $CCFLAGS $PPU_OPT ../ppu.cpp -c  -o ../ppu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../reader.cpp -c  -o ../reader.o
+    emcc $INCLUDES $CCFLAGS -O3 ../sa1.cpp -c  -o ../sa1.o
+    emcc $INCLUDES $CCFLAGS -O3 ../sa1cpu.cpp -c   -o ../sa1cpu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../sdd1.cpp -c  -o ../sdd1.o
+    emcc $INCLUDES $CCFLAGS -O3 ../sdd1emu.cpp -c  -o ../sdd1emu.o
+    emcc $INCLUDES $CCFLAGS -O3 ../seta.cpp -c  -o ../seta.o
+    emcc $INCLUDES $CCFLAGS -O3 ../seta010.cpp -c  -o ../seta010.o
+    emcc $INCLUDES $CCFLAGS -O3 ../seta011.cpp -c  -o ../seta011.o
+    emcc $INCLUDES $CCFLAGS -O3 ../seta018.cpp -c   -o ../seta018.o
+    emcc $INCLUDES $CCFLAGS -O3 ../snes9x.cpp -c  -o ../snes9x.o
+    emcc $INCLUDES $CCFLAGS -O3 ../spc7110.cpp -c  -o ../spc7110.o
+    emcc $INCLUDES $CCFLAGS -O3 ../srtc.cpp -c  -o ../srtc.o
+    emcc $INCLUDES $CCFLAGS -O3 ../tile.cpp -c  -o ../tile.o
+    emcc $INCLUDES $CCFLAGS -O3 sdlmain.cpp -c  -o sdlmain.o
+    emcc $INCLUDES $CCFLAGS -O3 sdlinput.cpp -c  -o sdlinput.o
+    emcc $INCLUDES $CCFLAGS -O3 sdlvideo.cpp -c  -o sdlvideo.o
+    emcc $INCLUDES $CCFLAGS -O3 sdlaudio.cpp -c  -o sdlaudio.o
 }
 
 link () {
@@ -80,7 +82,7 @@ clean
 compile
 link snes9x-chrome-intel
 
-CCFLAGS="$CCFLAGS -O3"
+PPU_OPT="-O3"
 clean
 compile
 link snes9x
