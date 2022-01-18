@@ -567,7 +567,7 @@ void S9xParseArg (char **argv, int &i, int argc){
 
 #ifdef HTML
 extern "C" void toggle_display_framerate() __attribute__((used));
-extern "C" void run(char*) __attribute__((used));
+extern "C" void run(char*, int) __attribute__((used));
 extern "C" int set_frameskip(int) __attribute__((used));
 extern "C" void mainloop() __attribute__((used));
 extern "C" float* get_left_audio_buffer() __attribute__((used));
@@ -644,6 +644,8 @@ float* get_right_audio_buffer() {
 	return right_audio_buffer;	
 }
 
+static int port2 = 0;
+
 void reboot_emulator(char *filename){
   	uint32 saved_flags = CPU.Flags;
 	bool8	loaded = FALSE;
@@ -658,32 +660,42 @@ void reboot_emulator(char *filename){
 	//NSRTControllerSetup();
 
 	S9xUnmapAllControls();
+
+	int controllerCount = 2;
 	S9xSetController(0, CTL_JOYPAD, 0, 0, 0, 0);
 	S9xSetController(1, CTL_JOYPAD, 1, 0, 0, 0);
-    S9xMapButton(0, S9xGetCommandT("Joypad1 Right"), false);
-    S9xMapButton(1, S9xGetCommandT("Joypad1 Left"), false);
-    S9xMapButton(2, S9xGetCommandT("Joypad1 Down"), false);
-    S9xMapButton(3, S9xGetCommandT("Joypad1 Up"), false);
-    S9xMapButton(4, S9xGetCommandT("Joypad1 Start"), false);
-    S9xMapButton(5, S9xGetCommandT("Joypad1 Select"), false);
-    S9xMapButton(6, S9xGetCommandT("Joypad1 A"), false);
-    S9xMapButton(7, S9xGetCommandT("Joypad1 B"), false);
-    S9xMapButton(8, S9xGetCommandT("Joypad1 X"), false);
-    S9xMapButton(9, S9xGetCommandT("Joypad1 Y"), false);
-    S9xMapButton(10, S9xGetCommandT("Joypad1 L"), false);
-    S9xMapButton(11, S9xGetCommandT("Joypad1 R"), false);
-    S9xMapButton(12, S9xGetCommandT("Joypad2 Right"), false);
-    S9xMapButton(13, S9xGetCommandT("Joypad2 Left"), false);
-    S9xMapButton(14, S9xGetCommandT("Joypad2 Down"), false);
-    S9xMapButton(15, S9xGetCommandT("Joypad2 Up"), false);
-    S9xMapButton(16, S9xGetCommandT("Joypad2 Start"), false);
-    S9xMapButton(17, S9xGetCommandT("Joypad2 Select"), false);
-    S9xMapButton(18, S9xGetCommandT("Joypad2 A"), false);
-    S9xMapButton(19, S9xGetCommandT("Joypad2 B"), false);
-    S9xMapButton(20, S9xGetCommandT("Joypad2 X"), false);
-    S9xMapButton(21, S9xGetCommandT("Joypad2 Y"), false);
-    S9xMapButton(22, S9xGetCommandT("Joypad2 L"), false);
-    S9xMapButton(23, S9xGetCommandT("Joypad2 R"), false);
+	if (port2 == 1) {
+		controllerCount = 5;
+		S9xSetController(1, CTL_MP5, 1, 2, 3, 4);
+	}
+	int idx = 0;
+	for (int i = 1; i <= controllerCount; i++) {
+		char command[255] = "";
+		sprintf(command, "Joypad%d Right", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Left", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Down", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Up", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Start", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Select", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d A", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d B", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d X", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d Y", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d L", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+		sprintf(command, "Joypad%d R", i);
+		S9xMapButton(idx++, S9xGetCommandT(command), false);
+	}
 
 	// printf("Attempting to load SRAM %s.\n", S9xGetFilename(".srm", SRAM_DIR));
 	// bool8 sramloaded = Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
@@ -714,7 +726,12 @@ void* set_transparency(int i){
     Settings.Transparency=i;
     return (void *)&Settings;
 }
-void run(char *filename){
+void run(char *filename, int p2){
+	printf("Filename: %s, p2: %d\n", filename, p2);	
+	port2 = p2;
+	if (port2 == 1) {
+		Settings.MultiPlayer5Master = TRUE;	
+	}
     reboot_emulator(filename);
     #ifdef SOUND
     printf("S9xSetSoundMute(FALSE)\n");
