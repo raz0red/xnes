@@ -187,7 +187,9 @@
 #include "srtc.h"
 #include "snapshot.h"
 #include "controls.h"
+#ifndef HTML
 #include "movie.h"
+#endif
 #include "display.h"
 #include "language.h"
 
@@ -1181,9 +1183,11 @@ bool8 S9xFreezeGame (const char *filename)
 		S9xResetSaveTimer(TRUE);
 
 		const char *base = S9xBasename(filename);
+#ifndef HTML
 		if (S9xMovieActive())
 			sprintf(String, MOVIE_INFO_SNAPSHOT " %s", base);
 		else
+#endif
 			sprintf(String, SAVE_INFO_SNAPSHOT " %s", base);
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
@@ -1245,6 +1249,7 @@ bool8 S9xUnfreezeGame (const char *filename)
 			return (FALSE);
 		}
 
+#ifndef HTML
 		if (S9xMovieActive())
 		{
 			if (S9xMovieReadOnly())
@@ -1253,6 +1258,7 @@ bool8 S9xUnfreezeGame (const char *filename)
 				sprintf(String, MOVIE_INFO_RERECORD " %s", base);
 		}
 		else
+#endif
 			sprintf(String, SAVE_INFO_LOAD " %s", base);
 
 		S9xMessage(S9X_INFO, S9X_FREEZE_FILE_INFO, String);
@@ -1390,6 +1396,7 @@ void S9xFreezeToStream (STREAM stream)
 		delete ssi;
 	}
 
+#ifndef HTML
 	if (S9xMovieActive())
 	{
 		uint8	*movie_freeze_buf;
@@ -1407,6 +1414,7 @@ void S9xFreezeToStream (STREAM stream)
 			delete [] movie_freeze_buf;
 		}
 	}
+#endif
 
 	S9xSetSoundMute(FALSE);
 
@@ -1564,6 +1572,7 @@ int S9xUnfreezeFromStream (STREAM stream)
 		if (result != SUCCESS && Settings.BS)
 			break;
 
+#ifndef HTML
 		result = UnfreezeStructCopy(stream, "SHO", &local_screenshot, SnapScreenshot, COUNT(SnapScreenshot), version);
 
 		SnapshotMovieInfo	mi;
@@ -1596,6 +1605,7 @@ int S9xUnfreezeFromStream (STREAM stream)
 					break;
 			}
 		}
+#endif
 
 		result = SUCCESS;
 	} while (false);
@@ -1759,6 +1769,7 @@ int S9xUnfreezeFromStream (STREAM stream)
 		if (local_bsx_data)
 			S9xBSXPostLoadState();
 
+#ifndef HTML
 		if (local_movie_data)
 		{
 			// restore last displayed pad_read status
@@ -1823,6 +1834,7 @@ int S9xUnfreezeFromStream (STREAM stream)
 			delete ssi;
 		}
 		else
+#endif
 		{
 			// couldn't load graphics, so black out the screen instead
 			for (uint32 y = 0; y < (uint32) (IMAGE_HEIGHT); y++)

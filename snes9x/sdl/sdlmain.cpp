@@ -63,6 +63,7 @@
 
 #ifdef HTML
 #include <emscripten.h>
+#include "snapshot.h"
 #endif
 
 
@@ -424,17 +425,15 @@ const char * S9xChooseFilename (bool8 read_only)
 	return (filename);
 }
 
-
 bool8 S9xOpenSnapshotFile (const char *filename, bool8 read_only, STREAM *file)
 {
-    printf("open snapshotfile\n");
-    return FALSE;
+	*file = fopen(filename, read_only ? "rb" : "wb");
+	return true;
 }
 
 void S9xCloseSnapshotFile (STREAM file)
 {
-    printf("close snapshotfile\n");
-	//CLOSE_STREAM(file);
+    fclose(file);
 }
 
 bool8 S9xInitUpdate (void)
@@ -577,10 +576,20 @@ extern "C" int is_pal() __attribute__((used));
 extern "C" void force_pal(int) __attribute__((used));
 extern "C" void show_fps(int)  __attribute__((used));
 extern "C" void report_button(int, int)  __attribute__((used));
+extern "C" void freeze() __attribute__((used));
+extern "C" void unfreeze() __attribute__((used));
 
 static float* left_audio_buffer = NULL;
 static float* right_audio_buffer = NULL;
 static Uint8* audio_buffer = NULL;
+
+void freeze() {
+	S9xFreezeGame("/freeze.out");
+}
+
+void unfreeze() {
+	S9xUnfreezeGame("/freeze.out");
+}
 
 void report_button(int id, int down) {
 	S9xReportButton(id, (down == 1));
@@ -624,7 +633,7 @@ float convert_sample_i2f(int16 i) {
 }
 
 void collect_audio(int length)
-{   
+{
 	S9xFinalizeSamples();
     S9xMixSamples(audio_buffer, length << 1);
 	int16* source = (int16*)audio_buffer;
@@ -641,7 +650,7 @@ float* get_left_audio_buffer() {
 }
 
 float* get_right_audio_buffer() {
-	return right_audio_buffer;	
+	return right_audio_buffer;
 }
 
 static int port2 = 0;
@@ -700,7 +709,7 @@ void reboot_emulator(char *filename){
 	// printf("Attempting to load SRAM %s.\n", S9xGetFilename(".srm", SRAM_DIR));
 	// bool8 sramloaded = Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
 	printf("Attempting to load SRAM %s.\n", WRC_SRAM_FILE);
-	bool8 sramloaded = Memory.LoadSRAM(WRC_SRAM_FILE);	
+	bool8 sramloaded = Memory.LoadSRAM(WRC_SRAM_FILE);
 	if (sramloaded)
 	{
 		printf("Load successful.\n");
@@ -727,10 +736,10 @@ void* set_transparency(int i){
     return (void *)&Settings;
 }
 void run(char *filename, int p2){
-	printf("Filename: %s, p2: %d\n", filename, p2);	
+	printf("Filename: %s, p2: %d\n", filename, p2);
 	port2 = p2;
 	if (port2 == 1) {
-		Settings.MultiPlayer5Master = TRUE;	
+		Settings.MultiPlayer5Master = TRUE;
 	}
     reboot_emulator(filename);
     #ifdef SOUND

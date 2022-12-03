@@ -17,6 +17,7 @@ clean() {
 compile() {
     echo $CCFLAGS
     echo $PPU_OPT
+    emcc $INCLUDES $CCFLAGS -O3 ../snapshot.cpp -c -o ../snapshot.o
     emcc $INCLUDES $CCFLAGS -O3 ../apu/apu.cpp -c -o ../apu/apu.o
     emcc $INCLUDES $CCFLAGS -O3 ../apu/SNES_SPC.cpp -c -o ../apu/SNES_SPC.o
     emcc $INCLUDES $CCFLAGS -O3 ../apu/SNES_SPC_misc.cpp -c -o ../apu/SNES_SPC_misc.o
@@ -66,10 +67,10 @@ compile() {
 link () {
     emcc \
     -O3 \
-    ../apu/apu.o ../apu/SNES_SPC.o ../apu/SNES_SPC_misc.o ../apu/SNES_SPC_state.o ../apu/SPC_DSP.o ../apu/SPC_Filter.o ../bsx.o ../c4.o ../c4emu.o  ../clip.o  ../controls.o ../cpu.o ../cpuexec.o ../cpuops.o ../dma.o ../dsp.o ../dsp1.o ../dsp2.o ../dsp3.o ../dsp4.o ../fxinst.o ../fxemu.o ../gfx.o ../globals.o  ../memmap.o  ../obc1.o ../ppu.o ../reader.o ../sa1.o ../sa1cpu.o  ../sdd1.o ../sdd1emu.o ../seta.o ../seta010.o ../seta011.o ../seta018.o  ../snes9x.o ../spc7110.o ../srtc.o ../tile.o sdlmain.o sdlinput.o sdlvideo.o sdlaudio.o \
+    ../apu/apu.o ../apu/SNES_SPC.o ../apu/SNES_SPC_misc.o ../apu/SNES_SPC_state.o ../apu/SPC_DSP.o ../apu/SPC_Filter.o ../bsx.o ../c4.o ../c4emu.o  ../clip.o  ../controls.o ../cpu.o ../cpuexec.o ../cpuops.o ../dma.o ../dsp.o ../dsp1.o ../dsp2.o ../dsp3.o ../dsp4.o ../fxinst.o ../fxemu.o ../gfx.o ../globals.o  ../memmap.o  ../obc1.o ../ppu.o ../reader.o ../sa1.o ../sa1cpu.o  ../sdd1.o ../sdd1emu.o ../seta.o ../seta010.o ../seta011.o ../seta018.o  ../snes9x.o ../spc7110.o ../srtc.o ../tile.o sdlmain.o sdlinput.o sdlvideo.o sdlaudio.o ../snapshot.o \
     -lm \
     -lSDL \
-    -s EXPORTED_FUNCTIONS="['_main', '_set_frameskip', '_set_transparency',  '_run', '_mainloop', '_toggle_display_framerate', '_S9xAutoSaveSRAM', '_get_left_audio_buffer', '_get_right_audio_buffer', '_collect_audio' ]" \
+    -s EXPORTED_FUNCTIONS="['_main', '_freeze', '_unfreeze', '_set_frameskip', '_set_transparency',  '_run', '_mainloop', '_toggle_display_framerate', '_S9xAutoSaveSRAM', '_get_left_audio_buffer', '_get_right_audio_buffer', '_collect_audio' ]" \
     -s EXTRA_EXPORTED_RUNTIME_METHODS=["cwrap"] \
     -s FORCE_FILESYSTEM=1 \
     -s INITIAL_MEMORY=67108864 \
